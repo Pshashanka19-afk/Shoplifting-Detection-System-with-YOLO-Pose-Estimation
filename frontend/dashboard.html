@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor - Security System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container dashboard-container">
+        <h2>Live Monitor Feed</h2>
+        
+        <div class="video-wrapper">
+            <!-- Live video stream from FastAPI -->
+            <!-- If image cannot load, the alt text provides fallback -->
+            <img src="http://localhost:8000/video" alt="Live Video Stream (Ensure backend is running)" class="video-stream">
+        </div>
+        
+        <div id="statusBox" class="status-box status-normal">
+            Status: <span id="statusText">Connecting...</span>
+        </div>
+        
+        <div class="links" style="margin-top: 2.5rem;">
+            <a href="login.html" onclick="logout()" style="padding: 0.5rem 1rem; border: 1px solid var(--accent); border-radius: 4px;">Sign Out</a>
+        </div>
+    </div>
+    
+    <script>
+        function logout() {
+            // In a real production app with JWT, you would clear the session token here
+            console.log("Logging out...");
+        }
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch('http://localhost:8000/status');
+                if (res.ok) {
+                    const data = await res.json();
+                    const statusText = document.getElementById('statusText');
+                    const statusBox = document.getElementById('statusBox');
+                    
+                    statusText.textContent = data.status;
+                    
+                    // Update styling based on status
+                    if (data.status === 'Unusual Activity') {
+                        statusBox.className = 'status-box status-alert';
+                    } else {
+                        statusBox.className = 'status-box status-normal';
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch status:", err);
+                document.getElementById('statusText').textContent = 'Disconnected';
+            }
+        }
+
+        // Poll the status API every 1 second
+        setInterval(fetchStatus, 1000);
+        
+        // Initial fetch
+        fetchStatus();
+    </script>
+</body>
+</html>

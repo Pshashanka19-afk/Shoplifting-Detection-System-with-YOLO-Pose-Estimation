@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Security System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h2>System Login</h2>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" required autocomplete="username">
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" required autocomplete="current-password">
+            </div>
+            <button type="submit">Access System</button>
+        </form>
+        <div class="links">
+            <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+        </div>
+        <p id="message" style="color: var(--alert); display: none; margin-top: 15px; font-weight: 500;"></p>
+    </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const msgEl = document.getElementById('message');
+
+            try {
+                const res = await fetch('http://localhost:8000/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (res.ok) {
+                    window.location.href = 'dashboard.html';
+                } else {
+                    const data = await res.json();
+                    msgEl.textContent = data.detail || 'Authentication failed';
+                    msgEl.style.display = 'block';
+                }
+            } catch (err) {
+                msgEl.textContent = 'Connection error. Is the backend running?';
+                msgEl.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
