@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cailliau — Shoplifting Detection</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%231a3a6b'/><path d='M32 8 C20 8 12 16 12 26 L12 52 L52 52 L52 26 C52 16 44 8 32 8Z' fill='none' stroke='white' stroke-width='3'/><circle cx='32' cy='22' r='5' fill='white'/><line x1='32' y1='27' x2='32' y2='40' stroke='%2300c6ff' stroke-width='3'/><line x1='32' y1='33' x2='24' y2='38' stroke='%2300c6ff' stroke-width='2'/><line x1='32' y1='33' x2='40' y2='38' stroke='%2300c6ff' stroke-width='2'/><line x1='32' y1='40' x2='26' y2='50' stroke='%2300c6ff' stroke-width='2'/><line x1='32' y1='40' x2='38' y2='50' stroke='%2300c6ff' stroke-width='2'/></svg>" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg-dark: #0f2027;
+            --bg-mid: #203a43;
+            --bg-light: #2c5364;
+            --accent: #00c6ff;
+            --accent2: #0072ff;
+            --text: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.55);
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --font-body: 'Inter', sans-serif;
+            --font-head: 'Space Grotesk', sans-serif;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text);
+            font-family: var(--font-body);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        /* ── SPLASH ── */
+        #splash {
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-mid), var(--bg-light));
+            gap: 28px;
+        }
+
+        #splash-logo {
+            width: clamp(140px, 25vw, 220px);
+            opacity: 0;
+            transform: scale(0.85);
+            animation: logoIn 0.8s ease 0.3s forwards;
+        }
+
+        #splash-name {
+            font-family: var(--font-head);
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 700;
+            letter-spacing: 6px;
+            color: var(--text);
+            opacity: 0;
+            animation: nameIn 0.7s ease 1.2s forwards, nameOut 0.6s ease 3s forwards;
+        }
+
+        #splash-name span {
+            color: var(--accent);
+        }
+
+        @keyframes logoIn {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes nameIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes nameOut {
+            to {
+                opacity: 0;
+            }
+        }
+
+        /* ── WELCOME ── */
+        #welcome {
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(-45deg, var(--bg-dark), var(--bg-mid), var(--bg-light), #00c6ff22);
+            background-size: 400% 400%;
+            animation: gradMove 15s ease infinite;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scan-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(0, 198, 255, 0.25);
+            box-shadow: 0 0 16px var(--accent);
+            animation: scanDown 5s linear infinite;
+        }
+
+        @keyframes scanDown {
+            from {
+                top: 0
+            }
+
+            to {
+                top: 100vh
+            }
+        }
+
+        @keyframes gradMove {
+            0% {
+                background-position: 0% 50%
+            }
+
+            50% {
+                background-position: 100% 50%
+            }
+
+            100% {
+                background-position: 0% 50%
+            }
+        }
+
+        .welcome-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 70px 50px;
+            text-align: center;
+            max-width: 520px;
+            width: 90%;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .welcome-title {
+            font-family: var(--font-head);
+            font-size: clamp(2.8rem, 7vw, 4.5rem);
+            font-weight: 700;
+            letter-spacing: 6px;
+            background: linear-gradient(to bottom, #fff 40%, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: fadeUp 1s ease forwards;
+            opacity: 0;
+            transform: translateY(16px);
+        }
+
+        .welcome-sub {
+            margin-top: 14px;
+            font-size: 0.8rem;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+            animation: blinkAnim 2s infinite;
+            font-family: var(--font-body);
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes blinkAnim {
+
+            0%,
+            100% {
+                opacity: 0.4
+            }
+
+            50% {
+                opacity: 1
+            }
+        }
+
+        /* ── AUTH ── */
+        .auth-page {
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(-45deg, #141e30, #243b55, #00c6ff, #0072ff);
+            background-size: 400% 400%;
+            animation: gradMove 12s ease infinite;
+        }
+
+        .auth-box {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 36px 44px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: boxIn 0.5s ease;
+        }
+
+        @keyframes boxIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .auth-box h2 {
+            font-family: var(--font-head);
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 22px;
+            color: var(--text);
+        }
+
+        .field {
+            margin-bottom: 14px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: #fff;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .field input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--accent);
+            background: rgba(0, 198, 255, 0.08);
+        }
+
+        .field select option {
+            background: #1a3a55;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, var(--accent), var(--accent2));
+            color: white;
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            margin-top: 6px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 0 14px rgba(0, 198, 255, 0.4);
+        }
+
+        .btn:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 24px rgba(0, 198, 255, 0.7);
+        }
+
+        .btn-outline {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .btn-outline:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            color: #fff;
+        }
+
+        .auth-msg {
+            font-size: 0.78rem;
+            margin-top: 10px;
+            min-height: 18px;
+        }
+
+        .auth-msg.err {
+            color: #ff6b6b;
+        }
+
+        .auth-msg.ok {
+            color: #69ff97;
+        }
+
+        .otp-note {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+        }
+
+        /* ── DASHBOARD ── */
+        #dashboard {
+            flex-direction: row;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 240px;
+            min-width: 240px;
+            background: rgba(15, 32, 39, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            padding: 24px 0;
+        }
+
+        .sidebar-brand {
+            padding: 0 22px 22px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 16px;
+        }
+
+        .sidebar-brand .brand-name {
+            font-family: var(--font-head);
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 2px;
+        }
+
+        .sidebar-brand .brand-sub {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        .nav-link {
+            padding: 12px 22px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--text);
+            border-left-color: var(--accent);
+            background: rgba(0, 198, 255, 0.06);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 0 22px;
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid rgba(255, 100, 100, 0.3);
+            border-radius: 8px;
+            color: rgba(255, 100, 100, 0.6);
+            font-family: var(--font-body);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            border-color: #ff6b6b;
+            color: #ff6b6b;
+            background: rgba(255, 100, 100, 0.05);
+        }
+
+        .main {
+            flex: 1;
+            padding: 28px 32px;
+            overflow-y: auto;
+        }
+
+        .main::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .main::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .topbar h1 {
+            font-family: var(--font-head);
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .user-chip {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .user-chip span {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 18px;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-val {
+            font-family: var(--font-head);
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-val.green {
+            color: #69ff97;
+        }
+
+        .stat-val.yellow {
+            color: #ffd166;
+        }
+
+        .stat-val.red {
+            color: #ff6b6b;
+        }
+
+        .monitor-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 16px;
+        }
+
+        .feed-box {
+            background: #000;
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            height: 400px;
+        }
+
+        .live-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(220, 30, 30, 0.85);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            padding: 3px 10px;
+            border-radius: 4px;
+            z-index: 3;
+            animation: blinkAnim 2s step-end infinite;
+        }
+
+        #feed-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .feed-status {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.65);
+            border-radius: 6px;
+            padding: 5px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #69ff97;
+            box-shadow: 0 0 8px #69ff97;
+            animation: blinkAnim 2s ease infinite;
+        }
+
+        .dot.suspicious {
+            background: #ffd166;
+            box-shadow: 0 0 8px #ffd166;
+        }
+
+        .dot.shoplifting {
+            background: #ff6b6b;
+            box-shadow: 0 0 8px #ff6b6b;
+            animation: blinkAnim 0.5s ease infinite;
+        }
+
+        .alerts-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            height: 400px;
+        }
+
+        .alerts-head {
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            font-family: var(--font-head);
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .alerts-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+
+        .alerts-body::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .alerts-body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .alert-item {
+            padding: 10px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.78rem;
+            display: flex;
+            gap: 10px;
+        }
+
+        .alert-item .time {
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .alert-item .text {
+            color: rgba(255, 255, 255, 0.55);
+        }
+
+        .alert-item.suspicious .text {
+            color: #ffd166;
+        }
+
+        .alert-item.shoplifting .text {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
+
+        .alert-item.ok .text {
+            color: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SPLASH -->
+    <div id="splash" class="page active">
+        <img id="splash-logo" src="logo.png" alt="Cailliau Logo" />
+        <div id="splash-name">CAILLI<span>AU</span></div>
+    </div>
+
+    <!-- WELCOME -->
+    <div id="welcome" class="page" onclick="go('login-choice')">
+        <div class="scan-line"></div>
+        <div class="welcome-card">
+            <div class="welcome-title">WELCOME</div>
+            <div class="welcome-sub">[ CLICK ANYWHERE TO CONTINUE ]</div>
+        </div>
+    </div>
+
+    <!-- LOGIN CHOICE -->
+    <div id="login-choice" class="page auth-page">
+        <div class="auth-box">
+            <h2>Welcome Back</h2>
+            <button class="btn" onclick="go('signin')">Sign In</button>
+            <button class="btn" style="margin-top:10px" onclick="go('register')">Register</button>
+            <button class="btn-outline" onclick="go('forgot1')">Forgot Password?</button>
+        </div>
+    </div>
+
+    <!-- SIGN IN -->
+    <div id="signin" class="page auth-page">
+        <div class="auth-box">
+            <h2>Sign In</h2>
+            <div class="field"><label>Mobile Number</label><input id="si-mobile" type="tel"
+                    placeholder="10 digit number" /></div>
+            <div class="field"><label>Password</label><input id="si-pass" type="password"
+                    placeholder="Enter password" /></div>
+            <button class="btn" onclick="doLogin()">Login</button>
+            <button class="btn-outline" onclick="go('login-choice')">Back</button>
+            <div id="si-msg" class="auth-msg"></div>
+        </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="register" class="page auth-page">
+        <div class="auth-box">
+            <h2>Register</h2>
+            <div class="field"><label>Full Name</label><input id="r-name" type="text" placeholder="Your name" /></div>
+            <div class="field"><label>Age</label><input id="r-age" type="number" placeholder="Your age" /></div>
+            <div class="field"><label>Mobile Number</label><input id="r-mobile" type="tel"
+                    placeholder="10 digit number" /></div>
+            <div class="field"><label>Purpose</label>
+                <select id="r-purpose">
+                    <option value="">Select purpose</option>
+                    <option value="Security Staff">Security Staff</option>
+                    <option value="Store Manager">Store Manager</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Testing">Testing</option>
+                </select>
+            </div>
+            <div class="field"><label>Password</label><input id="r-pass" type="password"
+                    placeholder="Create password" /></div>
+            <button class="btn" onclick="doRegisterStep1()">Send OTP</button>
+            <button class="btn-outline" onclick="go('login-choice')">Back</button>
+            <div id="r-msg" class="auth-msg"></div>
+        </div>
+    </div>
+
+    <!-- REGISTER OTP -->
+    <div id="register-otp" class="page auth-page">
+        <div class="auth-box">
+            <h2>Verify OTP</h2>
+            <p class="otp-note">Check your terminal for the 4-digit OTP</p>
+            <div class="field"><label>Enter OTP</label><input id="r-otp" type="text" placeholder="4 digit OTP"
+                    maxlength="4" /></div>
+            <button class="btn" onclick="doRegisterStep2()">Verify &amp; Create Account</button>
+            <div id="rotp-msg" class="auth-msg"></div>
+        </div>
+    </div>
+
+    <!-- FORGOT STEP 1 -->
+    <div id="forgot1" class="page auth-page">
+        <div class="auth-box">
+            <h2>Forgot Password</h2>
+            <div class="field"><label>Mobile Number</label><input id="f-mobile" type="tel"
+                    placeholder="10 digit number" /></div>
+            <button class="btn" onclick="doForgot1()">Send OTP</button>
+            <button class="btn-outline" onclick="go('login-choice')">Back</button>
+            <div id="f1-msg" class="auth-msg"></div>
+        </div>
+    </div>
+
+    <!-- FORGOT STEP 2 -->
+    <div id="forgot2" class="page auth-page">
+        <div class="auth-box">
+            <h2>Reset Password</h2>
+            <p class="otp-note">Check your terminal for the 4-digit OTP</p>
+            <div class="field"><label>Enter OTP</label><input id="f-otp" type="text" placeholder="4 digit OTP"
+                    maxlength="4" /></div>
+            <div class="field"><label>New Password</label><input id="f-newpass" type="password"
+                    placeholder="New password" /></div>
+            <button class="btn" onclick="doForgot2()">Reset Password</button>
+            <div id="f2-msg" class="auth-msg"></div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="page">
+        <div class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-name">CAILLIAU</div>
+                <div class="brand-sub">Shoplifting Detection System</div>
+            </div>
+            <div class="nav-link active">Dashboard</div>
+            <div class="nav-link">Live Monitor</div>
+            <div class="nav-link">Incident Logs</div>
+            <div class="nav-link">Settings</div>
+            <div class="sidebar-footer">
+                <button class="logout-btn" onclick="doLogout()">Logout</button>
+            </div>
+        </div>
+        <div class="main">
+            <div class="topbar">
+                <h1>System Overview</h1>
+                <div class="user-chip">Operator: <span id="dash-user">—</span></div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-label">Current Status</div>
+                    <div class="stat-val green" id="stat-status">NORMAL</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Suspicious</div>
+                    <div class="stat-val yellow" id="stat-sus">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Shoplifting</div>
+                    <div class="stat-val red" id="stat-shop">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Session Time</div>
+                    <div class="stat-val" id="stat-time">00:00</div>
+                </div>
+            </div>
+            <div class="monitor-grid">
+                <div class="feed-box">
+                    <div class="live-badge">● LIVE</div>
+                    <img id="feed-img" src="" alt="Live Feed" />
+                    <div class="feed-status">
+                        <div class="dot" id="status-dot"></div>
+                        <span id="status-text">NORMAL</span>
+                    </div>
+                </div>
+                <div class="alerts-box">
+                    <div class="alerts-head">Alert Log</div>
+                    <div class="alerts-body" id="alerts-list">
+                        <div class="alert-item ok">
+                            <span class="time">--:--:--</span>
+                            <span class="text">System started. Monitoring active.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = 'http://localhost:8000';
+        let regMobile = '', forgotMobile = '';
+        let susCount = 0, shopCount = 0, lastStatus = 'NORMAL';
+        let statusInterval = null, sessionInterval = null, sessionStart = null;
+
+        function go(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        // Splash: logo shows → name fades in at 1.2s → name fades out at 3s → welcome at 3.8s
+        window.onload = () => {
+            setTimeout(() => go('welcome'), 3800);
+        };
+
+        function setMsg(id, text, type) {
+            const el = document.getElementById(id);
+            el.textContent = text;
+            el.className = 'auth-msg ' + type;
+        }
+
+        function nowTime() {
+            return new Date().toLocaleTimeString('en-GB');
+        }
+
+        function addAlert(type, text) {
+            const list = document.getElementById('alerts-list');
+            const div = document.createElement('div');
+            div.className = 'alert-item ' + type;
+            div.innerHTML = `<span class="time">${nowTime()}</span><span class="text">${text}</span>`;
+            list.insertBefore(div, list.firstChild);
+        }
+
+        // Register Step 1
+        async function doRegisterStep1() {
+            const name = document.getElementById('r-name').value.trim();
+            const age = parseInt(document.getElementById('r-age').value);
+            const mobile = document.getElementById('r-mobile').value.trim();
+            const purpose = document.getElementById('r-purpose').value;
+            const pass = document.getElementById('r-pass').value;
+            if (!name || !age || !mobile || !purpose || !pass) { setMsg('r-msg', 'Please fill all fields', 'err'); return; }
+            setMsg('r-msg', 'Sending OTP...', 'ok');
+            try {
+                const res = await fetch(`${API}/register/step1`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, age, mobile, purpose, password: pass })
+                });
+                const data = await res.json();
+                if (!res.ok) { setMsg('r-msg', data.detail || 'Error sending OTP', 'err'); return; }
+                regMobile = mobile;
+                setMsg('r-msg', data.message, 'ok');
+                setTimeout(() => go('register-otp'), 800);
+            } catch (e) { setMsg('r-msg', 'Cannot connect to server. Is backend running?', 'err'); }
+        }
+
+        // Register Step 2
+        async function doRegisterStep2() {
+            const otp = document.getElementById('r-otp').value.trim();
+            if (!otp) { setMsg('rotp-msg', 'Enter the OTP', 'err'); return; }
+            setMsg('rotp-msg', 'Verifying...', 'ok');
+            try {
+                const res = await fetch(`${API}/register/step2`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile: regMobile, otp })
+                });
+                const data = await res.json();
+                if (!res.ok) { setMsg('rotp-msg', data.detail || 'Invalid OTP', 'err'); return; }
+                setMsg('rotp-msg', data.message, 'ok');
+                setTimeout(() => go('signin'), 1200);
+            } catch (e) { setMsg('rotp-msg', 'Cannot connect to server', 'err'); }
+        }
+
+        // Login
+        async function doLogin() {
+            const mobile = document.getElementById('si-mobile').value.trim();
+            const pass = document.getElementById('si-pass').value;
+            if (!mobile || !pass) { setMsg('si-msg', 'Fill all fields', 'err'); return; }
+            setMsg('si-msg', 'Authenticating...', 'ok');
+            try {
+                const res = await fetch(`${API}/login`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile, password: pass })
+                });
+                const data = await res.json();
+                if (!res.ok) { setMsg('si-msg', data.detail || 'Login failed', 'err'); return; }
+                document.getElementById('dash-user').textContent = data.user.name;
+                startDashboard();
+                go('dashboard');
+            } catch (e) { setMsg('si-msg', 'Cannot connect to server. Is backend running?', 'err'); }
+        }
+
+        // Forgot Step 1
+        async function doForgot1() {
+            const mobile = document.getElementById('f-mobile').value.trim();
+            if (!mobile) { setMsg('f1-msg', 'Enter mobile number', 'err'); return; }
+            setMsg('f1-msg', 'Sending OTP...', 'ok');
+            try {
+                const res = await fetch(`${API}/forgot/step1`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile })
+                });
+                const data = await res.json();
+                if (!res.ok) { setMsg('f1-msg', data.detail || 'Error', 'err'); return; }
+                forgotMobile = mobile;
+                setMsg('f1-msg', data.message, 'ok');
+                setTimeout(() => go('forgot2'), 800);
+            } catch (e) { setMsg('f1-msg', 'Cannot connect to server', 'err'); }
+        }
+
+        // Forgot Step 2
+        async function doForgot2() {
+            const otp = document.getElementById('f-otp').value.trim();
+            const newpass = document.getElementById('f-newpass').value;
+            if (!otp || !newpass) { setMsg('f2-msg', 'Fill all fields', 'err'); return; }
+            try {
+                const res = await fetch(`${API}/forgot/step2`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile: forgotMobile, otp, new_password: newpass })
+                });
+                const data = await res.json();
+                if (!res.ok) { setMsg('f2-msg', data.detail || 'Error', 'err'); return; }
+                setMsg('f2-msg', data.message + ' Redirecting to login...', 'ok');
+                setTimeout(() => go('signin'), 1200);
+            } catch (e) { setMsg('f2-msg', 'Cannot connect to server', 'err'); }
+        }
+
+        // Dashboard
+        function startDashboard() {
+            susCount = 0; shopCount = 0; lastStatus = 'NORMAL';
+            sessionStart = Date.now();
+            document.getElementById('feed-img').src = `${API}/video?t=${Date.now()}`;
+
+            sessionInterval = setInterval(() => {
+                const s = Math.floor((Date.now() - sessionStart) / 1000);
+                const m = Math.floor(s / 60).toString().padStart(2, '0');
+                const sec = (s % 60).toString().padStart(2, '0');
+                document.getElementById('stat-time').textContent = `${m}:${sec}`;
+            }, 1000);
+
+            statusInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`${API}/status`);
+                    const data = await res.json();
+                    const st = data.status;
+
+                    // stat card
+                    const el = document.getElementById('stat-status');
+                    el.textContent = st;
+                    el.className = 'stat-val ' + (st === 'SHOPLIFTING' ? 'red' : st === 'SUSPICIOUS' ? 'yellow' : 'green');
+
+                    // feed overlay
+                    document.getElementById('status-text').textContent = st;
+                    const dot = document.getElementById('status-dot');
+                    dot.className = 'dot ' + st.toLowerCase();
+
+                    // alerts on change
+                    if (st !== lastStatus) {
+                        if (st === 'SUSPICIOUS') {
+                            susCount++;
+                            document.getElementById('stat-sus').textContent = susCount;
+                            addAlert('suspicious', '⚠️ Suspicious behaviour detected');
+                        }
+                        if (st === 'SHOPLIFTING') {
+                            shopCount++;
+                            document.getElementById('stat-shop').textContent = shopCount;
+                            addAlert('shoplifting', '🚨 SHOPLIFTING DETECTED — Take action immediately');
+                        }
+                        if (st === 'NORMAL' && lastStatus !== 'NORMAL') {
+                            addAlert('ok', '✓ Subject returned to normal behaviour');
+                        }
+                        lastStatus = st;
+                    }
+                } catch (e) { }
+            }, 1000);
+        }
+
+        function doLogout() {
+            clearInterval(statusInterval);
+            clearInterval(sessionInterval);
+            document.getElementById('feed-img').src = '';
+            go('login-choice');
+        }
+    </script>
+</body>
+
+</html>
