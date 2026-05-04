@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cailliau — Shoplifting Detection</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f2027;
+            --bg-mid: #203a43;
+            --bg-light: #2c5364;
+            --accent: #00c6ff;
+            --text: #ffffff;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --font-body: 'Inter', sans-serif;
+            --font-head: 'Space Grotesk', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .page {
+            display: none;
+            height: 100vh;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-mid), var(--bg-light));
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        /* Transitions */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 198, 255, 0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Splash Screen */
+        #splash {
+            background: var(--bg-dark);
+        }
+
+        #splash-logo {
+            width: 180px;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        #splash-text {
+            font-family: var(--font-head);
+            font-size: 3.5rem;
+            letter-spacing: 8px;
+            opacity: 0;
+            transition: opacity 1s ease;
+            margin-top: 20px;
+        }
+
+        .fade-out {
+            opacity: 0 !important;
+        }
+
+        /* Auth Cards */
+        .auth-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            padding: 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 420px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        h2 {
+            font-family: var(--font-head);
+            margin-bottom: 25px;
+            font-size: 2.2rem;
+            text-align: center;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: white;
+            outline: none;
+            font-family: var(--font-body);
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            background: rgba(0, 198, 255, 0.05);
+        }
+
+        textarea {
+            height: 100px;
+            resize: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(45deg, #00c6ff, #0072ff);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: var(--font-body);
+            font-size: 1rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 198, 255, 0.4);
+        }
+
+        .link {
+            margin-top: 20px;
+            font-size: 0.9rem;
+            text-align: center;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .link:hover {
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        /* Welcome Page */
+        #welcome h2 {
+            font-size: 3.5rem;
+            letter-spacing: 2px;
+        }
+
+        #welcome p {
+            font-size: 1.1rem;
+            opacity: 0.8;
+            margin-bottom: 40px;
+        }
+
+        /* Dashboard */
+        #dashboard {
+            display: none;
+            padding: 0;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #dashboard.active {
+            display: flex;
+        }
+
+        .topbar {
+            width: 100%;
+            height: 70px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            z-index: 100;
+        }
+
+        .brand {
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: 1.4rem;
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+
+        .hamburger {
+            cursor: pointer;
+            width: 30px;
+            height: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            z-index: 101;
+        }
+
+        .hamburger span {
+            width: 100%;
+            height: 3px;
+            background: white;
+            border-radius: 3px;
+            transition: 0.3s;
+        }
+
+        .main-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: rgba(0, 0, 0, 0.15);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 30px;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 10px 20px;
+            overflow-y: auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100%;
+        }
+
+        .feed-box {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            background: #000;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+            min-height: 650px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #live-feed {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .overlay-start {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            backdrop-filter: blur(5px);
+        }
+
+        .status-pill {
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-normal {
+            background: rgba(76, 175, 80, 0.2);
+            color: #81c784;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+
+        .status-suspicious {
+            background: rgba(255, 152, 0, 0.2);
+            color: #ffb74d;
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            animation: blink 1s infinite;
+        }
+
+        .status-shoplifting {
+            background: rgba(244, 67, 54, 0.2);
+            color: #ef5350;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            animation: blink 0.5s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Side Menu */
+        .side-panel {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100%;
+            background: var(--bg-dark);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 200;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            padding: 80px 30px;
+            box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .side-panel.open {
+            right: 0;
+        }
+
+        .menu-item {
+            padding: 18px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Modal / Dialog */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            z-index: 300;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal {
+            background: var(--bg-mid);
+            width: 95%;
+            max-width: 900px;
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            opacity: 0.5;
+        }
+
+        /* Table Styles */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            color: var(--accent);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        td {
+            padding: 12px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Message List */
+        .message-list {
+            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+
+        .msg-item {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .msg-time {
+            color: var(--accent);
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        /* Mock SMS Notification */
+        #sms-notification {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 340px;
+            background: rgba(25, 25, 25, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 15px 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            transition: top 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #sms-notification.show {
+            top: 20px;
+        }
+
+        .sms-icon {
+            width: 40px;
+            height: 40px;
+            background: #007aff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .sms-content {
+            flex: 1;
+        }
+
+        .sms-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-bottom: 2px;
+        }
+
+        .sms-body {
+            font-size: 0.85rem;
+            font-weight: 500;
+            line-height: 1.3;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="font-size: 0.9rem; letter-spacing: 2px; opacity: 0.6;">LOADING...</p>
+    </div>
+
+    <!-- Mock SMS Notification -->
+    <div id="sms-notification">
+        <div class="sms-icon">💬</div>
+        <div class="sms-content">
+            <div class="sms-header">
+                <span>MESSAGES</span>
+                <span>now</span>
+            </div>
+            <div class="sms-body" id="sms-body-text">
+                Your verification code is 1234.
+            </div>
+        </div>
+    </div>
+
+    <!-- Splash Screen -->
+    <div id="splash" class="page active">
+        <img id="splash-logo" src="logo.png" alt="Logo">
+        <h1 id="splash-text">CAILLIAU</h1>
+    </div>
+
+    <!-- Welcome Screen -->
+    <div id="welcome" class="page">
+        <h2>Ready to Secure?</h2>
+        <p>AI-powered real-time detection at your fingertips.</p>
+        <button style="max-width: 320px;" onclick="delayedPage('login-choice')">ENTER SYSTEM</button>
+    </div>
+
+    <!-- Login Choice -->
+    <div id="login-choice" class="page">
+        <div class="auth-card">
+            <h2>Welcome Back</h2>
+            <button onclick="delayedPage('signin')">Sign In</button>
+            <div style="height: 15px;"></div>
+            <button style="background: transparent; border: 1px solid rgba(255,255,255,0.2);"
+                onclick="delayedPage('register')">Create Account</button>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div id="signin" class="page">
+        <div class="auth-card">
+            <h2>Sign In</h2>
+            <input type="text" id="login-mobile" placeholder="Mobile Number">
+            <input type="password" id="login-password" placeholder="Password">
+            <button onclick="doLogin()">Login</button>
+            <p class="link" onclick="delayedPage('register')">Don't have an account? Register</p>
+        </div>
+    </div>
+
+    <!-- Register Page -->
+    <div id="register" class="page">
+        <div class="auth-card">
+            <h2>Register</h2>
+            <input type="text" id="reg-name" placeholder="Full Name">
+            <input type="number" id="reg-age" placeholder="Age">
+            <input type="text" id="reg-mobile" placeholder="Mobile Number">
+            <select id="reg-purpose">
+                <option value="Store Owner">Store Owner</option>
+                <option value="Security Manager">Security Manager</option>
+                <option value="Admin">Admin</option>
+            </select>
+            <input type="password" id="reg-password" placeholder="Password">
+            <button onclick="doRegister()">Send OTP</button>
+            <p class="link" onclick="delayedPage('signin')">Already have an account? Login</p>
+        </div>
+    </div>
+
+    <!-- OTP Page -->
+    <div id="otp" class="page">
+        <div class="auth-card">
+            <h2>Verify OTP</h2>
+            <p style="margin-bottom: 20px; font-size: 0.9rem; text-align: center; opacity: 0.7;">Enter the 4-digit code
+                sent to your terminal.</p>
+            <input type="text" id="otp-code" placeholder="Enter OTP">
+            <button onclick="verifyOTP()">Verify & Register</button>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="page">
+        <div class="topbar">
+            <div class="brand">CAILLIAU</div>
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="main-container">
+            <div class="sidebar">
+                <div style="margin-bottom: 40px;">
+                    <div style="font-size: 0.8rem; opacity: 0.5; text-transform: uppercase; letter-spacing: 1px;">
+                        Operator</div>
+                    <div id="user-name-display" style="font-size: 1.2rem; font-weight: 600; color: var(--accent);">User
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div
+                        style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 12px; font-size: 0.9rem;">
+                        <span style="opacity: 0.6;">System Status:</span><br>
+                        <span style="color: #4CAF50; font-weight: 600;">ACTIVE</span>
+                    </div>
+                </div>
+            </div>
+            <div class="main-content">
+                <h1 style="font-family: var(--font-head); margin-bottom: 20px; font-size: 2rem;">System Monitor</h1>
+                <div class="feed-box">
+                    <div id="detection-overlay" class="overlay-start">
+                        <h3 style="margin-bottom: 15px; font-size: 1.5rem;">Camera is Offline</h3>
+                        <p style="margin-bottom: 25px; opacity: 0.7; text-align: center; max-width: 320px;">Manual
+                            activation required to initiate AI pose estimation.</p>
+                        <button style="max-width: 220px;" onclick="requestCameraPermission()">Start Detection</button>
+                    </div>
+                    <div id="denied-msg"
+                        style="display:none; text-align:center; padding: 20px; color: #ff6b6b; font-weight: 600;">
+                        Camera access denied. Feed unavailable.
+                    </div>
+                    <img id="live-feed" src="" alt="Camera Feed" style="display:none;">
+                </div>
+                <div style="margin-top: 25px; display: flex; gap: 20px; align-items: center;">
+                    <div id="status-display" class="status-pill status-normal">NORMAL</div>
+                    <button id="stop-btn" style="display:none; max-width: 160px; background: #f44336;"
+                        onclick="stopDetection()">Stop Camera</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menu Panel -->
+    <div id="menu-panel" class="side-panel">
+        <div class="menu-item" onclick="openModal('modal-account')">Your Account</div>
+        <div class="menu-item" onclick="openModal('modal-signin-data')">Sign In Data</div>
+        <div class="menu-item" onclick="doLogout()">Logout</div>
+        <div class="menu-item" onclick="openModal('modal-service')">Customer Service</div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-account" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal" style="max-width: 450px;" onclick="event.stopPropagation()">
+            <div class="modal-close" onclick="closeAllModals()">×</div>
+            <h2>Your Account</h2>
+            <div id="account-info-container"></div>
+        </div>
+    </div>
+
+    <div id="modal-signin-data" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal" style="max-width: 950px;" onclick="event.stopPropagation()">
+            <div class="modal-close" onclick="closeAllModals()">×</div>
+            <h2>Sign In Data History</h2>
+            <div class="table-container">
+                <table id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Login Time</th>
+                            <th>Logout Time</th>
+                            <th>Duration</th>
+                            <th>Camera In</th>
+                            <th>Camera Out</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-service" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal" style="max-width: 450px;" onclick="event.stopPropagation()">
+            <div class="modal-close" onclick="closeAllModals()">×</div>
+            <h2>Customer Service</h2>
+            <div id="service-form">
+                <input type="text" id="svc-name" placeholder="User Name">
+                <input type="text" id="svc-mobile" placeholder="Mobile Number">
+                <textarea id="svc-message" placeholder="Type your message here..."></textarea>
+                <button onclick="submitService()">Submit Request</button>
+            </div>
+            <div id="service-msg" style="display:none; text-align:center; padding: 20px;">
+                <p style="color: var(--accent); font-size: 1.2rem;">Our nearby service will reach you</p>
+            </div>
+            <div id="admin-message-section" class="message-list" style="display:none;">
+                <h3 style="font-size: 1rem; margin-bottom: 10px; opacity: 0.7;">Recent Messages (Admin View)</h3>
+                <div id="recent-messages-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-permission" class="modal-overlay">
+        <div class="modal" style="max-width: 400px;">
+            <h2>Camera Permission</h2>
+            <p style="margin-bottom: 25px; opacity: 0.8; text-align: center;">This system requires camera access to
+                begin monitoring.</p>
+            <div style="display: flex; gap: 15px;">
+                <button onclick="grantPermission()">Allow Camera</button>
+                <button style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);"
+                    onclick="denyPermission()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API = "http://localhost:8000";
+        let currentUser = null;
+        let customerMessages = [];
+        let loginHistory = [];
+
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function delayedPage(id) {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';
+            setTimeout(() => {
+                loader.style.display = 'none';
+                showPage(id);
+            }, 2000);
+        }
+
+        window.onload = () => {
+            const logo = document.getElementById('splash-logo');
+            const text = document.getElementById('splash-text');
+            setTimeout(() => { if (logo) logo.style.opacity = 1; }, 100);
+            setTimeout(() => { if (text) text.style.opacity = 1; }, 2000);
+            setTimeout(() => {
+                if (logo) logo.classList.add('fade-out');
+                if (text) text.classList.add('fade-out');
+            }, 3000);
+            setTimeout(() => { delayedPage('welcome'); }, 4000);
+        };
+
+        function toggleMenu() {
+            document.getElementById('menu-panel').classList.toggle('open');
+        }
+
+        function openModal(id) {
+            if (id === 'modal-account' && currentUser) {
+                const container = document.getElementById('account-info-container');
+                container.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <span style="color: var(--accent); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Name</span>
+                        <span style="font-weight: 500;">${currentUser.name}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <span style="color: var(--accent); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Purpose</span>
+                        <span style="font-weight: 500;">${currentUser.purpose}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                        <span style="color: var(--accent); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px;">Mobile</span>
+                        <span style="font-weight: 500;">${currentUser.mobile}</span>
+                    </div>
+                `;
+            }
+            if (id === 'modal-signin-data') {
+                updateHistoryTable();
+            }
+            if (id === 'modal-service') {
+                const adminSection = document.getElementById('admin-message-section');
+                if (currentUser && currentUser.purpose === 'Admin') {
+                    adminSection.style.display = 'block';
+                    updateMessageList();
+                } else {
+                    adminSection.style.display = 'none';
+                }
+            }
+            document.getElementById(id).style.display = 'flex';
+            toggleMenu();
+        }
+
+        function closeModal(e) { e.target.style.display = 'none'; }
+        function closeAllModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
+
+        function updateHistoryTable() {
+            const body = document.getElementById('history-body');
+            body.innerHTML = "";
+            [...loginHistory].reverse().forEach(record => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${record.name}</td>
+                    <td>${record.mobile}</td>
+                    <td>${record.loginTime}</td>
+                    <td>${record.logoutTime}</td>
+                    <td>${record.duration}</td>
+                    <td>${record.cameraInTime}</td>
+                    <td>${record.cameraOutTime}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function submitService() {
+            const name = document.getElementById('svc-name').value;
+            const mobile = document.getElementById('svc-mobile').value;
+            const message = document.getElementById('svc-message').value;
+            if (!name || !mobile || !message) return alert("Fill all fields");
+
+            customerMessages.push({
+                name,
+                mobile,
+                message,
+                submittedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+
+            document.getElementById('svc-name').value = "";
+            document.getElementById('svc-mobile').value = "";
+            document.getElementById('svc-message').value = "";
+
+            document.getElementById('service-form').style.display = 'none';
+            document.getElementById('service-msg').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('service-form').style.display = 'block';
+                document.getElementById('service-msg').style.display = 'none';
+            }, 3000);
+
+            if (currentUser && currentUser.purpose === 'Admin') {
+                updateMessageList();
+            }
+        }
+
+        function updateMessageList() {
+            const list = document.getElementById('recent-messages-list');
+            list.innerHTML = "";
+            [...customerMessages].reverse().forEach(msg => {
+                const div = document.createElement('div');
+                div.className = "msg-item";
+                div.innerHTML = `<span class="msg-time">[${msg.submittedAt}]</span> ${msg.name} — "${msg.message}"`;
+                list.appendChild(div);
+            });
+        }
+
+        function doLogout() {
+            if (currentUser) {
+                const now = new Date();
+                const lastRecord = loginHistory[loginHistory.length - 1];
+                if (lastRecord) {
+                    lastRecord.logoutTime = now.toLocaleTimeString();
+                    const loginDate = new Date();
+                    const [h, m, s] = lastRecord.loginTime.split(':');
+                    loginDate.setHours(h, m, s);
+                    const diff = Math.floor((now - loginDate) / 60000);
+                    lastRecord.duration = diff + " min";
+                    lastRecord.cameraOutTime = now.toLocaleTimeString();
+                }
+            }
+            stopDetection();
+            currentUser = null;
+            delayedPage('login-choice');
+            toggleMenu();
+        }
+
+        async function doLogin() {
+            const mobile = document.getElementById('login-mobile').value;
+            const password = document.getElementById('login-password').value;
+            try {
+                const res = await fetch(`${API}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    currentUser = data.user;
+                    loginHistory.push({
+                        name: currentUser.name,
+                        mobile: currentUser.mobile,
+                        loginTime: new Date().toLocaleTimeString(),
+                        logoutTime: "—",
+                        duration: "—",
+                        cameraInTime: "—",
+                        cameraOutTime: "—"
+                    });
+                    document.getElementById('user-name-display').innerText = currentUser.name;
+                    delayedPage('dashboard');
+                } else {
+                    alert(data.detail || "Login failed");
+                }
+            } catch (e) { alert("Server error"); }
+        }
+
+        async function doRegister() {
+            const name = document.getElementById('reg-name').value;
+            const age = document.getElementById('reg-age').value;
+            const mobile = document.getElementById('reg-mobile').value;
+            const purpose = document.getElementById('reg-purpose').value;
+            const password = document.getElementById('reg-password').value;
+            try {
+                const res = await fetch(`${API}/register/step1`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, age, mobile, purpose, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    if (data.otp) {
+                        setTimeout(() => showMockSMS(data.otp), 1000);
+                    }
+                    delayedPage('otp');
+                } else {
+                    alert(data.detail || "Registration failed");
+                }
+            } catch (e) { alert("Server error"); }
+        }
+
+        function showMockSMS(otp) {
+            const notif = document.getElementById('sms-notification');
+            const text = document.getElementById('sms-body-text');
+            text.innerHTML = `<b>Cailliau:</b> Your verification code is <b>${otp}</b>. Do not share this with anyone.`;
+            notif.classList.add('show');
+
+            // Play a subtle sound if possible or just vibrate effect
+            if ('vibrate' in navigator) navigator.vibrate(200);
+
+            setTimeout(() => {
+                notif.classList.remove('show');
+            }, 6000);
+        }
+
+        async function verifyOTP() {
+            const mobile = document.getElementById('reg-mobile').value;
+            const otp = document.getElementById('otp-code').value;
+            try {
+                const res = await fetch(`${API}/register/step2`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mobile, otp })
+                });
+                if (res.ok) {
+                    alert("Registration successful!");
+                    delayedPage('signin');
+                } else {
+                    alert("Invalid OTP");
+                }
+            } catch (e) { alert("Server error"); }
+        }
+
+        function requestCameraPermission() {
+            document.getElementById('modal-permission').style.display = 'flex';
+        }
+
+        async function grantPermission() {
+            if (loginHistory.length > 0) {
+                loginHistory[loginHistory.length - 1].cameraInTime = new Date().toLocaleTimeString();
+            }
+            closeAllModals();
+            try {
+                const res = await fetch(`${API}/start_detection`, { method: 'POST' });
+                if (res.ok) {
+                    document.getElementById('detection-overlay').style.display = 'none';
+                    document.getElementById('denied-msg').style.display = 'none';
+                    document.getElementById('stop-btn').style.display = 'block';
+                    document.getElementById('live-feed').style.display = 'block';
+                    document.getElementById('live-feed').src = `${API}/video`;
+                    startStatusPolling();
+                }
+            } catch (e) { alert("Failed to start camera"); }
+        }
+
+        function denyPermission() {
+            if (loginHistory.length > 0) {
+                loginHistory[loginHistory.length - 1].cameraOutTime = new Date().toLocaleTimeString();
+            }
+            closeAllModals();
+            document.getElementById('detection-overlay').style.display = 'none';
+            document.getElementById('denied-msg').style.display = 'block';
+            document.getElementById('live-feed').style.display = 'none';
+        }
+
+        async function stopDetection() {
+            if (currentUser && loginHistory.length > 0) {
+                if (loginHistory[loginHistory.length - 1].cameraOutTime === "—") {
+                    loginHistory[loginHistory.length - 1].cameraOutTime = new Date().toLocaleTimeString();
+                }
+            }
+            try {
+                await fetch(`${API}/stop_detection`, { method: 'POST' });
+                document.getElementById('detection-overlay').style.display = 'flex';
+                document.getElementById('stop-btn').style.display = 'none';
+                document.getElementById('live-feed').style.display = 'none';
+                document.getElementById('live-feed').src = "";
+            } catch (e) { }
+        }
+
+        function startStatusPolling() {
+            const pollInt = setInterval(async () => {
+                if (!currentUser || document.getElementById('live-feed').style.display === 'none') {
+                    clearInterval(pollInt);
+                    return;
+                }
+                try {
+                    const res = await fetch(`${API}/status`);
+                    if (res.ok) {
+                        const data = await res.json();
+                        const status = data.status;
+                        const el = document.getElementById('status-display');
+                        el.innerText = status;
+                        el.className = `status-pill status-${status.toLowerCase()}`;
+                    }
+                } catch (e) { }
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>

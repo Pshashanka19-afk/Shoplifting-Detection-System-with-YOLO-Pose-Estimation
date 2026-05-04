@@ -85,7 +85,7 @@ def register_step1(name: str, age: int, mobile: str,
     if not sent:
         return {"success": False, "message": "Failed to send OTP. Check your Fast2SMS API key."}
 
-    return {"success": True, "message": f"OTP sent to {mobile}. Please verify."}
+    return {"success": True, "message": f"OTP sent to {mobile}. Please verify.", "otp": otp}
 
 
 def register_step2(mobile: str, otp_entered: str) -> dict:
@@ -171,7 +171,7 @@ def forgot_step1(mobile: str) -> dict:
     if not sent:
         return {"success": False, "message": "Failed to send OTP."}
 
-    return {"success": True, "message": f"OTP sent to {mobile}."}
+    return {"success": True, "message": f"OTP sent to {mobile}.", "otp": otp}
 
 
 def forgot_step2(mobile: str, otp_entered: str, new_password: str) -> dict:

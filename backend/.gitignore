@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# Project specific
+latest_frame.jpg
+latest_status.txt
+users/
+data/
+logs/
+*.pt
+
+# OS files
+.DS_Store
+Thumbs.db
