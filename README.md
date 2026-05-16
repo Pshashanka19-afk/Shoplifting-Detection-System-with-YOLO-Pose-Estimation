@@ -32,7 +32,7 @@ Meet the **AI Shoplifting Detection System**. Using cutting-edge **YOLOv8 Pose E
 
 
 
-## 📸 Sneak Peek
+## Sneak Peek ##
 > **Tip for the creator:** Add a `.gif` or screenshot of your working dashboard here! 
 > 
 > *(Example syntax: `![Dashboard Screenshot](path/to/image.png)`)*
