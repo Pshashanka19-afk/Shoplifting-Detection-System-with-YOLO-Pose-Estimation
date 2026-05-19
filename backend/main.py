@@ -138,7 +138,7 @@ def gen_frames():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         else:
-            # Send a placeholder if no frame yet
+            # Send  placeholder if no frame yet
             img = np.zeros((480, 640, 3), np.uint8)
             cv2.putText(img, "Waiting for camera...", (150, 240), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
             _, buffer = cv2.imencode('.jpg', img)
