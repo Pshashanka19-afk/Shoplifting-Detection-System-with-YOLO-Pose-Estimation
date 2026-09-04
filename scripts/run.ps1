@@ -5,4 +5,4 @@ pip install -r ..\requirements.txt
 
 Write-Host "Starting FastAPI Backend..."
 cd ..\backend
-uvicorn app:app --reload
+uvicorn app:app  --reload
