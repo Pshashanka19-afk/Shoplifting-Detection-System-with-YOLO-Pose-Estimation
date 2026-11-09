@@ -1,8 +1,6 @@
  <div align="center">
   
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=200&section=header&text=Shoplifting%20Detection%20System&fontSize=50&fontAlignY=38&desc=Powered%20by%20AI%20&%20YOLOv8%20Pose%20Estimation&descAlignY=60&descAlign=62" />
-
-  **An intelligent, real-time AI surveillance system designed to protect retail environments by predicting and detecting shoplifting behaviors before they happen**
+**An intelligent, real-time AI surveillance system designed to protect retail environments by predicting and detecting shoplifting behaviors before they happen**
 
   ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
   ![YOLOv8](https://img.shields.io/badge/YOLOv8-FFD700?style=for-the-badge&logo=yolo&logoColor=black)
@@ -95,6 +93,4 @@ Building for a hackathon or remote demo? If you expose your FastAPI backend usin
 ---
 
 <div align="center">
-  <h3>Ready to secure the future of retail? Star this repository!</h3>
-  <p>Contributions, issues, and feature requests are welcome!</p>
-</div>
+  
