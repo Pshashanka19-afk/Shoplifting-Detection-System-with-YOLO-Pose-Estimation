@@ -1,13 +1,6 @@
  <div align="center">
   
 **An intelligent, real-time AI surveillance system designed to protect retail environments by predicting and detecting shoplifting behaviors before they happen**
-
-  ![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)
-  ![YOLOv8](https://img.shields.io/badge/YOLOv8-FFD700?style=for-the-badge&logo=yolo&logoColor=black)
-  ![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
-  ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
-  ![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)
-
 </div>
 
 
