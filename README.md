@@ -1,4 +1,4 @@
-<div align="center">
+ <div align="center">
   
   <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&height=200&section=header&text=Shoplifting%20Detection%20System&fontSize=50&fontAlignY=38&desc=Powered%20by%20AI%20&%20YOLOv8%20Pose%20Estimation&descAlignY=60&descAlign=62" />
 
